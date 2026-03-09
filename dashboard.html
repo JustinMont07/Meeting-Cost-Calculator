@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — Meeting Cost Calculator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"/>
+  <link href="styles.css" rel="stylesheet"/>
+  <script>
+    const t = localStorage.getItem('theme');
+    if (t) document.documentElement.setAttribute('data-theme', t);
+  </script>
+</head>
+<body class="content-layout">
+
+  <div class="dashboard-layout">
+
+    <!-- ===== LEFT: filter sidebar ===== -->
+    <aside class="dashboard-sidebar">
+      <div class="dashboard-sidebar-title-row">
+        <h2 class="header londrina-shadow-regular mb-1">Cost Dashboard</h2>
+        <p class="header mb-0">Annual cost across all your meetings.</p>
+        <button class="btn btn-outline-secondary btn-sm dashboard-reset-btn" onclick="resetAllFilters()">Reset filters</button>
+      </div>
+
+      <div class="dashboard-filters-row">
+
+        <!-- Meetings list -->
+        <div class="card dashboard-filter-card dashboard-filter-meetings">
+          <div class="card-body p-0">
+            <div class="dashboard-filter-header">
+              <span class="subheader">Meetings</span>
+              <button class="btn btn-link btn-sm dashboard-toggle-all-btn" onclick="toggleAllMeetings()">Deselect all</button>
+            </div>
+            <div id="dashboard-filter-list"></div>
+          </div>
+        </div>
+
+        <!-- Type + Min cost -->
+        <div class="dashboard-filter-secondary">
+
+          <div class="card dashboard-filter-card mb-3">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="dashboard-filter-section-label mb-0">Meeting type</label>
+                <button class="btn btn-link btn-sm dashboard-toggle-all-btn" id="type-select-all-btn" onclick="selectAllTypes()">Select all</button>
+              </div>
+              <div class="dashboard-type-filters">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="filter-recurring" checked onchange="saveFilterPrefs(); render()" />
+                  <label class="form-check-label description" for="filter-recurring">
+                    <span class="cmp-card-badge cmp-badge-recurring">Recurring</span>
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="filter-fixed" checked onchange="saveFilterPrefs(); render()" />
+                  <label class="form-check-label description" for="filter-fixed">
+                    <span class="cmp-card-badge cmp-badge-fixed">Fixed sessions</span>
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="filter-onetime" checked onchange="saveFilterPrefs(); render()" />
+                  <label class="form-check-label description" for="filter-onetime">
+                    <span class="cmp-card-badge cmp-badge-onetime">One-time</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card dashboard-filter-card">
+            <div class="card-body">
+              <label class="dashboard-filter-section-label" for="filter-min-cost">Minimum cost</label>
+              <div class="dashboard-mincost-row">
+                <span class="dashboard-mincost-prefix">$</span>
+                <input type="number" class="form-control form-control-sm dashboard-mincost-input"
+                  id="filter-min-cost" placeholder="0" min="0"
+                  oninput="saveFilterPrefs(); render()" />
+              </div>
+              <div class="form-text description dashboard-mincost-hint">Hide meetings below this cost</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== RIGHT: main content ===== -->
+    <main class="dashboard-main">
+
+      <!-- Summary stat cards -->
+      <div class="dashboard-stat-row" id="dashboard-stat-row"></div>
+
+      <!-- Bar chart -->
+      <div class="card dashboard-chart-card mb-4">
+        <div class="card-body">
+          <h5 class="subheader mb-3">Cost by Meeting</h5>
+          <div id="dashboard-chart" class="dashboard-chart"></div>
+        </div>
+      </div>
+
+      <!-- Meeting table -->
+      <div class="card dashboard-table-card">
+        <div class="card-body p-0">
+          <div class="dashboard-table-header">
+            <span class="subheader">Breakdown</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table dashboard-table mb-0">
+              <thead>
+                <tr>
+                  <th class="subheader">Meeting</th>
+                  <th class="subheader">Type</th>
+                  <th class="subheader">Duration</th>
+                  <th class="subheader">Occurrences</th>
+                  <th class="subheader">Cost</th>
+                  <th class="subheader">% of Total</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="dashboard-empty" class="dashboard-empty" style="display:none;">
+        <div class="dashboard-empty-icon">📊</div>
+        <p class="dashboard-empty-text">No meetings to display yet.</p>
+        <a href="breakdown.html" class="btn btn-primary">Go add some meetings</a>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="shared.js"></script>
+  <script src="navbar.js"></script>
+  <script src="dashboard.js"></script>
+  <script src="footer.js"></script>
+</body>
+</html>

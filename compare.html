@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Compare — Meeting Cost Calculator</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link href="styles.css" rel="stylesheet" />
+    <script>
+      const t = localStorage.getItem("theme");
+      if (t) document.documentElement.setAttribute("data-theme", t);
+    </script>
+  </head>
+
+  <body class="content-layout">
+    <!-- ===================== MEETING LIST VIEW =====================
+       Shown when no meeting is selected.
+  ============================================================== -->
+    <div id="compare-list-view" class="compare-list-view">
+      <div class="compare-list-inner">
+        <div class="compare-list-header">
+          <h1 class="header londrina-shadow-regular mb-1">Comparison Tool</h1>
+          <p class="header mb-0">
+            Select a meeting to explore what-if scenarios.
+          </p>
+        </div>
+        <a href="breakdown.html" class="back-link description"
+          >&larr; Add more meetings</a
+        >
+        <div id="compare-meeting-cards" class="compare-meeting-grid">
+          <!-- Injected by compare.js -->
+        </div>
+
+        <!-- Empty state -->
+        <div id="compare-empty" class="compare-empty" style="display: none">
+          <div class="compare-empty-icon">📅</div>
+          <p class="compare-empty-text">No meetings yet.</p>
+          <a href="breakdown.html" class="btn btn-primary"
+            >Go add some meetings</a
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== COMPARISON VIEW =====================
+       Shown when a meeting is selected.
+  ============================================================== -->
+    <div
+      id="compare-detail-view"
+      class="compare-detail-view"
+      style="display: none"
+    >
+      <!-- Top bar -->
+      <div class="compare-topbar">
+        <button
+          class="btn btn-sm btn-outline-secondary"
+          onclick="closeComparison()"
+        >
+          ← Back to meetings
+        </button>
+        <h2
+          class="compare-topbar-title subheader mb-0"
+          id="compare-meeting-name"
+        ></h2>
+        <div></div>
+        <!-- spacer -->
+      </div>
+
+      <!-- Side-by-side panels -->
+      <div class="compare-panels">
+        <!-- LEFT: Original -->
+        <div class="compare-panel compare-panel-original">
+          <div class="compare-panel-label compare-panel-label-original">
+            Original
+          </div>
+          <div class="compare-panel-meta" id="original-meta"></div>
+          <div class="compare-cost-display" id="original-cost"></div>
+          <div class="compare-breakdown-table" id="original-table"></div>
+        </div>
+
+        <!-- CENTRE: Controls -->
+        <div class="compare-controls-col">
+          <div class="compare-controls-card card">
+            <div class="card-body">
+              <h6 class="subheader mb-3">What if you changed…</h6>
+
+              <!-- Duration -->
+              <div class="mb-3">
+                <label class="form-label description" for="cmp-duration"
+                  >Duration (minutes)</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="cmp-duration"
+                  min="1"
+                  oninput="runComparison()"
+                />
+              </div>
+
+              <!-- Recurrence -->
+              <div class="mb-3">
+                <label class="form-label description">Recurring?</label>
+                <div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="cmp-recurring"
+                      id="cmp-recurring-yes"
+                      value="yes"
+                      onchange="toggleCmpRecurring()"
+                    />
+                    <label
+                      class="form-check-label description"
+                      for="cmp-recurring-yes"
+                      >Yes</label
+                    >
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="cmp-recurring"
+                      id="cmp-recurring-no"
+                      value="no"
+                      onchange="toggleCmpRecurring()"
+                    />
+                    <label
+                      class="form-check-label description"
+                      for="cmp-recurring-no"
+                      >No</label
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <div id="cmp-one-time-fields" class="mb-3">
+                <label
+                  class="form-label description"
+                  for="cmp-total-occurrences"
+                  >Number of occurrences</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="cmp-total-occurrences"
+                  min="1"
+                  oninput="runComparison()"
+                />
+              </div>
+
+              <div id="cmp-recurring-fields" class="mb-3" style="display: none">
+                <label class="form-label description" for="cmp-times-per-month"
+                  >Times per month</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="cmp-times-per-month"
+                  min="1"
+                  oninput="runComparison()"
+                />
+              </div>
+
+              <!-- Attendees -->
+              <div>
+                <label class="form-label description">Attendees</label>
+                <div id="cmp-attendees-list" class="cmp-attendees-list">
+                  <!-- Injected by compare.js -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Scenario -->
+        <div class="compare-panel compare-panel-scenario">
+          <div class="compare-panel-label compare-panel-label-scenario">
+            Scenario
+          </div>
+          <div class="compare-panel-meta" id="scenario-meta"></div>
+          <div class="compare-cost-display" id="scenario-cost"></div>
+          <div class="compare-breakdown-table" id="scenario-table"></div>
+        </div>
+      </div>
+
+      <!-- Savings banner -->
+      <div
+        id="compare-savings-banner"
+        class="compare-savings-banner"
+        style="display: none"
+      >
+        <div class="compare-savings-content">
+          <span id="compare-savings-text"></span>
+          <span class="compare-savings-divider">·</span>
+          <span class="compare-savings-cta"
+            >Happy with these changes?
+            <button
+              class="btn btn-sm compare-apply-btn"
+              id="save-scenario-btn"
+              onclick="saveScenario()"
+            >
+              Apply to meeting
+            </button></span
+          >
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="shared.js"></script>
+    <script src="navbar.js"></script>
+    <script src="compare.js"></script>
+    <script src="footer.js"></script>
+  </body>
+</html>

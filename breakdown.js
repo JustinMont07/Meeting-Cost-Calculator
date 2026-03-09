@@ -10,6 +10,93 @@ const usdFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
 });
 
+
+// -------------------------------------------------------
+// Undo — single-level undo for delete actions
+// -------------------------------------------------------
+let _undoSnapshot = null;
+let _undoTimer = null;
+let _undoLabel = "";
+
+function saveUndoSnapshot(label) {
+  _undoLabel = label;
+  _undoSnapshot = localStorage.getItem("meetingsData");
+}
+
+function showUndoToast(label) {
+  let toast = document.getElementById("undo-toast");
+  if (!toast) return;
+  document.getElementById("undo-toast-msg").textContent = `"${label}" removed.`;
+  toast.classList.add("undo-toast-visible");
+  if (_undoTimer) clearTimeout(_undoTimer);
+  _undoTimer = setTimeout(dismissUndoToast, 5000);
+}
+
+function dismissUndoToast() {
+  const toast = document.getElementById("undo-toast");
+  if (toast) toast.classList.remove("undo-toast-visible");
+  _undoSnapshot = null;
+  _undoLabel = "";
+}
+
+function undoDelete() {
+  if (!_undoSnapshot) return;
+  localStorage.setItem("meetingsData", _undoSnapshot);
+  dismissUndoToast();
+  renderMeetings();
+}
+
+// -------------------------------------------------------
+// Templates — common meeting presets
+// -------------------------------------------------------
+const TEMPLATES = [
+  { label: "1:1",            durationMins: 30,  isRecurring: true,  timesPerMonth: 4,  totalOccurrences: 1, notes: "Regular one-on-one check-in." },
+  { label: "Team Standup",   durationMins: 15,  isRecurring: true,  timesPerMonth: 20, totalOccurrences: 1, notes: "Daily standup to align on priorities." },
+  { label: "Sprint Planning",durationMins: 120, isRecurring: true,  timesPerMonth: 2,  totalOccurrences: 1, notes: "Sprint planning at the start of each sprint." },
+  { label: "All-Hands",      durationMins: 60,  isRecurring: true,  timesPerMonth: 1,  totalOccurrences: 1, notes: "Company-wide all-hands meeting." },
+  { label: "Retrospective",  durationMins: 60,  isRecurring: true,  timesPerMonth: 2,  totalOccurrences: 1, notes: "Sprint retrospective to reflect and improve." },
+  { label: "Interview",      durationMins: 60,  isRecurring: false, timesPerMonth: 1,  totalOccurrences: 1, notes: "Candidate interview." },
+  { label: "Kickoff",        durationMins: 90,  isRecurring: false, timesPerMonth: 1,  totalOccurrences: 1, notes: "Project kickoff meeting." },
+  { label: "Brainstorm",     durationMins: 60,  isRecurring: false, timesPerMonth: 1,  totalOccurrences: 1, notes: "Creative brainstorming session." },
+];
+
+function openTemplateModal() {
+  const list = document.getElementById("template-list");
+  if (!list) return;
+  list.innerHTML = TEMPLATES.map((t, i) => `
+    <div class="template-row" onclick="applyTemplate(${i})">
+      <div class="template-row-info">
+        <span class="template-row-name">${t.label}</span>
+        <span class="template-row-meta">${t.durationMins} min · ${t.isRecurring ? `Recurring ${t.timesPerMonth}×/mo` : "One-time"}</span>
+      </div>
+      <span class="template-row-arrow">→</span>
+    </div>
+  `).join("");
+  new bootstrap.Modal(document.getElementById("templateModal")).show();
+}
+
+function applyTemplate(idx) {
+  const t = TEMPLATES[idx];
+  document.getElementById("meeting-label").value = t.label;
+  document.getElementById("meeting-duration").value = t.durationMins;
+  document.getElementById("meeting-notes").value = t.notes;
+
+  if (t.isRecurring) {
+    document.getElementById("recurring-yes").checked = true;
+    document.getElementById("recurring-fields").style.display = "block";
+    document.getElementById("one-time-fields").style.display = "none";
+    document.getElementById("times-per-month").value = t.timesPerMonth;
+  } else {
+    document.getElementById("recurring-no").checked = true;
+    document.getElementById("recurring-fields").style.display = "none";
+    document.getElementById("one-time-fields").style.display = "block";
+    document.getElementById("total-occurrences").value = t.totalOccurrences;
+  }
+
+  bootstrap.Modal.getInstance(document.getElementById("templateModal")).hide();
+}
+
+
 // -------------------------------------------------------
 // encodeData / decodeData
 // Base64 encodes data before writing to localStorage so
@@ -33,7 +120,7 @@ function decodeData(raw) {
 
 function getMeetings() {
   const saved = localStorage.getItem("meetingsData");
-  return saved ? decodeData(saved) || [] : [];
+  return saved ? (decodeData(saved) || []) : [];
 }
 
 function saveMeetings(meetings) {
@@ -42,7 +129,7 @@ function saveMeetings(meetings) {
 
 function getPeople() {
   const saved = localStorage.getItem("salaryFormData");
-  return saved ? decodeData(saved) || [] : [];
+  return saved ? (decodeData(saved) || []) : [];
 }
 
 // -------------------------------------------------------
@@ -51,9 +138,8 @@ function getPeople() {
 // -------------------------------------------------------
 function toggleRecurring() {
   const isRecurring = document.getElementById("recurring-yes").checked;
-  document.getElementById("recurring-fields").style.display = isRecurring
-    ? "block"
-    : "none";
+  document.getElementById("recurring-fields").style.display = isRecurring ? "block" : "none";
+  document.getElementById("one-time-fields").style.display = isRecurring ? "none" : "block";
 }
 
 // -------------------------------------------------------
@@ -74,6 +160,7 @@ function addMeeting() {
 
   const isRecurring = document.getElementById("recurring-yes").checked;
   let timesPerMonth = 1;
+  let totalOccurrences = 1;
 
   if (isRecurring) {
     timesPerMonth = Number(document.getElementById("times-per-month").value);
@@ -81,6 +168,8 @@ function addMeeting() {
       alert("Please enter how many times per month the meeting recurs.");
       return;
     }
+  } else {
+    totalOccurrences = Math.max(1, Number(document.getElementById("total-occurrences").value) || 1);
   }
 
   const meetings = getMeetings();
@@ -90,8 +179,10 @@ function addMeeting() {
     durationMins,
     isRecurring,
     timesPerMonth,
-    excludedNames: [], // names of people excluded from this meeting's cost
-    attendedCounts: {}, // per-person override of meetings attended (recurring only)
+    totalOccurrences,
+    excludedNames: [],
+    attendedCounts: {},
+    notes: document.getElementById("meeting-notes").value.trim(),
   });
   saveMeetings(meetings);
 
@@ -101,6 +192,8 @@ function addMeeting() {
   document.getElementById("recurring-no").checked = true;
   document.getElementById("recurring-fields").style.display = "none";
   document.getElementById("times-per-month").value = "";
+  document.getElementById("total-occurrences").value = "1";
+  document.getElementById("meeting-notes").value = "";
 
   renderMeetings();
 }
@@ -112,8 +205,35 @@ function addMeeting() {
 // -------------------------------------------------------
 function removeMeeting(id, event) {
   event.stopPropagation();
-  if (!confirm("Are you sure you want to delete this meeting?")) return;
-  saveMeetings(getMeetings().filter((m) => m.id !== id));
+  const meetings = getMeetings();
+  const target = meetings.find(m => m.id === id);
+  if (!target) return;
+  saveUndoSnapshot(target.label);
+  saveMeetings(meetings.filter((m) => m.id !== id));
+  renderMeetings();
+  showUndoToast(target.label);
+}
+
+
+// -------------------------------------------------------
+// duplicateMeeting(id, event)
+// Creates a copy of a meeting with a " (Copy)" suffix.
+// -------------------------------------------------------
+function duplicateMeeting(id, event) {
+  event.stopPropagation();
+  const meetings = getMeetings();
+  const original = meetings.find((m) => m.id === id);
+  if (!original) return;
+
+  const copy = Object.assign({}, original, {
+    id: Date.now(),
+    label: original.label + " (Copy)",
+    excludedNames: [...original.excludedNames],
+    attendedCounts: Object.assign({}, original.attendedCounts),
+  });
+
+  meetings.push(copy);
+  saveMeetings(meetings);
   renderMeetings();
 }
 
@@ -143,6 +263,7 @@ function togglePerson(meetingId, personName, event) {
   renderSingleMeeting(meeting, getPeople());
 }
 
+
 // -------------------------------------------------------
 // updateAttended(meetingId, personName, value, event)
 // Updates how many meetings a person attended this year.
@@ -155,7 +276,7 @@ function updateAttended(meetingId, personName, value, event) {
   const meeting = meetings.find((m) => m.id === meetingId);
   if (!meeting) return;
 
-  const max = meeting.timesPerMonth * 12;
+  const max = meeting.isRecurring ? meeting.timesPerMonth * 12 : (meeting.totalOccurrences || 1);
   let count = parseInt(value, 10);
   if (isNaN(count) || count < 0) count = 0;
   if (count > max) count = max;
@@ -181,34 +302,43 @@ function calculateBreakdown(meeting, people) {
   var message = "Cost";
   const excluded = meeting.excludedNames || [];
   const attendedCounts = meeting.attendedCounts || {};
-  const maxMeetings = meeting.isRecurring ? meeting.timesPerMonth * 12 : 1;
-  const breakdowns = []; // Stores { name, salary, cost, isExcluded, attended } for each person
+  const maxMeetings = meeting.isRecurring
+    ? meeting.timesPerMonth * 12
+    : (meeting.totalOccurrences || 1);
+  const isMultiSession = maxMeetings > 1;
+  const breakdowns = [];
+
+  if (meeting.isRecurring) {
+    message = "Total Cost per year";
+  } else if (maxMeetings > 1) {
+    message = `Total Cost (${maxMeetings} sessions)`;
+  }
 
   for (let i = 0; i < people.length; i++) {
     const isExcluded = excluded.includes(people[i].name);
-    var salMinute = people[i].salary / 106000;
+    const salType = people[i].salaryType || 'annual';
+    var salMinute = salType === 'hourly'
+      ? people[i].salary / 60
+      : people[i].salary / 106000;
     var personResult = meeting.durationMins * salMinute;
 
-    if (meeting.isRecurring) {
-      const attended =
-        attendedCounts[people[i].name] !== undefined
-          ? attendedCounts[people[i].name]
-          : maxMeetings;
+    if (isMultiSession) {
+      const attended = attendedCounts[people[i].name] !== undefined
+        ? attendedCounts[people[i].name]
+        : maxMeetings;
       personResult = personResult * attended;
-      message = "Total Cost per year";
     }
 
     if (!isExcluded) totalResult += personResult;
 
-    const attended = meeting.isRecurring
-      ? attendedCounts[people[i].name] !== undefined
-        ? attendedCounts[people[i].name]
-        : maxMeetings
+    const attended = isMultiSession
+      ? (attendedCounts[people[i].name] !== undefined ? attendedCounts[people[i].name] : maxMeetings)
       : null;
 
     breakdowns.push({
       name: people[i].name,
       salary: people[i].salary,
+      salaryType: people[i].salaryType || 'annual',
       cost: personResult,
       isExcluded,
       attended,
@@ -244,7 +374,7 @@ function buildAccordionItem(meeting, people, isOpen) {
            <tr>
              <th class="subheader">Name</th>
              <th class="subheader">Salary</th>
-             ${meeting.isRecurring ? '<th class="subheader attended-col">Attended</th>' : ""}
+             ${(meeting.isRecurring || (meeting.totalOccurrences || 1) > 1) ? '<th class="subheader attended-col">Attended</th>' : ""}
              <th class="subheader">${message}</th>
            </tr>
          </thead>
@@ -261,23 +391,19 @@ function buildAccordionItem(meeting, people, isOpen) {
                  <span class="person-toggle-indicator">${b.isExcluded ? "✕" : "✓"}</span>
                  ${b.name}
                </td>
-               <td class="description">$${b.salary.toLocaleString()}</td>
-               ${
-                 meeting.isRecurring
-                   ? `
+               <td class="description">$${b.salary.toLocaleString()}${b.salaryType === 'hourly' ? '<span class="salary-rate-suffix">/hr</span>' : ''}</td>
+               ${(meeting.isRecurring || (meeting.totalOccurrences || 1) > 1) ? `
                <td class="description attended-col" onclick="event.stopPropagation()">
                  <input type="number"
                    class="attended-input"
                    value="${b.attended}"
                    min="0"
-                   max="${meeting.timesPerMonth * 12}"
+                   max="${meeting.isRecurring ? meeting.timesPerMonth * 12 : (meeting.totalOccurrences || 1)}"
                    onchange="updateAttended(${meeting.id}, '${b.name.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}', this.value, event)"
                    onclick="event.stopPropagation()"
                    title="Meetings attended out of ${meeting.timesPerMonth * 12} total" />
-                 <span class="attended-max">/${meeting.timesPerMonth * 12}</span>
-               </td>`
-                   : ""
-               }
+                 <span class="attended-max">/${meeting.isRecurring ? meeting.timesPerMonth * 12 : (meeting.totalOccurrences || 1)}</span>
+               </td>` : ""}
                <td class="description">${usdFormatter.format(b.cost)}</td>
              </tr>`,
              )
@@ -297,7 +423,7 @@ function buildAccordionItem(meeting, people, isOpen) {
   item.id = `meeting-${meeting.id}`;
 
   item.innerHTML = `
-    <h2 class="accordion-header" id="${headingId}">
+    <h2 class="accordion-header meeting-accordion-header" id="${headingId}">
       <button class="accordion-button meeting-accordion-btn ${isOpen ? "" : "collapsed"}"
         type="button"
         data-bs-toggle="collapse"
@@ -311,19 +437,26 @@ function buildAccordionItem(meeting, people, isOpen) {
             ${people.length > 0 ? `<span class="meeting-accordion-total">${usdFormatter.format(totalResult)}</span>` : ""}
           </span>
           <span class="meeting-accordion-detail">
-            ${meeting.durationMins} min${meeting.isRecurring ? ` &middot; Recurring &middot; ${meeting.timesPerMonth}&times;/month &middot; ${meeting.timesPerMonth * 12} total meetings` : " &middot; One-time"}
+            ${meeting.durationMins} min${meeting.isRecurring ? ` &middot; Recurring &middot; ${meeting.timesPerMonth}&times;/month` : (meeting.totalOccurrences > 1 ? ` &middot; ${meeting.totalOccurrences} sessions` : " &middot; One-time")}
           </span>
         </span>
-        <!-- Remove button sits inside the header but stops propagation -->
+      </button>
+      <!-- Action buttons are siblings of the toggle button, not children,
+           so clicks on them never reach the accordion toggle. -->
+      <span class="meeting-accordion-actions">
+        <span class="btn btn-sm btn-outline-secondary meeting-edit-btn"
+          onclick="openEditMeeting(${meeting.id}, event)">Edit</span>
+        <span class="btn btn-sm btn-outline-secondary meeting-dup-btn"
+          onclick="duplicateMeeting(${meeting.id}, event)">Duplicate</span>
         <span class="meeting-accordion-remove btn btn-sm btn-outline-danger"
           onclick="removeMeeting(${meeting.id}, event)">Remove</span>
-      </button>
+      </span>
     </h2>
     <div id="${collapseId}"
       class="accordion-collapse collapse ${isOpen ? "show" : ""}"
       aria-labelledby="${headingId}">
       <div class="accordion-body">
-        
+        ${meeting.notes ? `<p class="meeting-notes-text">${meeting.notes}</p>` : ""}
         ${tableHtml}
       </div>
     </div>
@@ -424,11 +557,146 @@ function renderPeopleSummary() {
       (p) => `
     <li class="people-summary-item d-flex justify-content-between">
       <span class="description small">${p.name}</span>
-      <span class="description small">$${p.salary.toLocaleString()}</span>
+      <span class="description small">$${p.salary.toLocaleString()}${p.salaryType === 'hourly' ? '<span class="salary-rate-suffix">/hr</span>' : ''}</span>
     </li>
   `,
     )
     .join("");
+}
+
+
+// -------------------------------------------------------
+// openEditMeeting(id, event)
+// Populates the edit modal with the meeting's current data
+// and opens it.
+// -------------------------------------------------------
+function openEditMeeting(id, event) {
+  if (event) event.stopPropagation();
+  const meetings = getMeetings();
+  const meeting = meetings.find((m) => m.id === id);
+  if (!meeting) return;
+
+  document.getElementById("edit-meeting-id").value = meeting.id;
+  document.getElementById("edit-meeting-label").value = meeting.label;
+  document.getElementById("edit-meeting-duration").value = meeting.durationMins;
+  document.getElementById("edit-meeting-notes").value = meeting.notes || "";
+
+  if (meeting.isRecurring) {
+    document.getElementById("edit-recurring-yes").checked = true;
+    document.getElementById("edit-recurring-fields").style.display = "block";
+    document.getElementById("edit-one-time-fields").style.display = "none";
+    document.getElementById("edit-times-per-month").value = meeting.timesPerMonth;
+  } else {
+    document.getElementById("edit-recurring-no").checked = true;
+    document.getElementById("edit-recurring-fields").style.display = "none";
+    document.getElementById("edit-one-time-fields").style.display = "block";
+    document.getElementById("edit-total-occurrences").value = meeting.totalOccurrences || 1;
+  }
+
+  const modal = new bootstrap.Modal(document.getElementById("editMeetingModal"));
+  modal.show();
+}
+
+// -------------------------------------------------------
+// toggleEditRecurring()
+// Shows/hides the times-per-month field inside the edit modal.
+// -------------------------------------------------------
+function toggleEditRecurring() {
+  const isRecurring = document.getElementById("edit-recurring-yes").checked;
+  document.getElementById("edit-recurring-fields").style.display = isRecurring ? "block" : "none";
+  document.getElementById("edit-one-time-fields").style.display = isRecurring ? "none" : "block";
+}
+
+// -------------------------------------------------------
+// saveEditMeeting()
+// Validates the edit form, updates the meeting in storage,
+// closes the modal, and re-renders.
+// -------------------------------------------------------
+function saveEditMeeting() {
+  const id = Number(document.getElementById("edit-meeting-id").value);
+  const label = document.getElementById("edit-meeting-label").value.trim();
+  const durationMins = Number(document.getElementById("edit-meeting-duration").value);
+  const isRecurring = document.getElementById("edit-recurring-yes").checked;
+  const notes = document.getElementById("edit-meeting-notes").value.trim();
+
+  if (!durationMins || durationMins < 1) {
+    alert("Please enter a valid meeting duration.");
+    return;
+  }
+
+  let timesPerMonth = 1;
+  let totalOccurrences = 1;
+  if (isRecurring) {
+    timesPerMonth = Number(document.getElementById("edit-times-per-month").value);
+    if (!timesPerMonth || timesPerMonth < 1) {
+      alert("Please enter how many times per month the meeting recurs.");
+      return;
+    }
+  } else {
+    totalOccurrences = Math.max(1, Number(document.getElementById("edit-total-occurrences").value) || 1);
+  }
+
+  const meetings = getMeetings();
+  const idx = meetings.findIndex((m) => m.id === id);
+  if (idx === -1) return;
+
+  const prev = meetings[idx];
+  const prevMax = prev.isRecurring ? prev.timesPerMonth * 12 : (prev.totalOccurrences || 1);
+  const newMax  = isRecurring ? timesPerMonth * 12 : totalOccurrences;
+  const resetAttended = prevMax !== newMax;
+
+  meetings[idx] = Object.assign({}, prev, {
+    label: label || prev.label,
+    durationMins,
+    isRecurring,
+    timesPerMonth,
+    totalOccurrences,
+    notes,
+    attendedCounts: resetAttended ? {} : (prev.attendedCounts || {}),
+  });
+
+  saveMeetings(meetings);
+  bootstrap.Modal.getInstance(document.getElementById("editMeetingModal")).hide();
+  renderSingleMeeting(meetings[idx], getPeople());
+}
+
+// -------------------------------------------------------
+// exportCSV()
+// Downloads a CSV file summarising all meetings and their
+// per-person cost breakdowns.
+// -------------------------------------------------------
+function exportCSV() {
+  const meetings = getMeetings();
+  const people = getPeople();
+
+  if (meetings.length === 0) {
+    alert("No meetings to export.");
+    return;
+  }
+
+  const rows = [["Meeting", "Type", "Duration (min)", "Times/Month", "Notes", "Total Cost", "Period"]];
+
+  meetings.forEach(m => {
+    const { totalResult, message } = calculateBreakdown(m, people);
+    rows.push([
+      m.label,
+      m.isRecurring ? "Recurring" : "One-time",
+      m.durationMins,
+      m.isRecurring ? m.timesPerMonth : "",
+      m.notes || "",
+      totalResult.toFixed(2),
+      message,
+    ]);
+  });
+
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "meeting-costs.csv";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // -------------------------------------------------------

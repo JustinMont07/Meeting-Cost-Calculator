@@ -1,13 +1,12 @@
 // ============================================================
 // persons.js
-// Handles all logic for the person entry form on index.html.
+// Two-section design:
+//   1. Compact list of added people (read view, edit/remove)
+//   2. Single persistent "Add Person" form at the bottom
 // ============================================================
-
 
 // -------------------------------------------------------
 // encodeData / decodeData
-// Base64 encodes data before writing to localStorage so
-// salary figures are not stored as plain readable JSON.
 // -------------------------------------------------------
 function encodeData(data) {
   return btoa(JSON.stringify(data));
@@ -21,154 +20,204 @@ function decodeData(raw) {
   }
 }
 
-// Tracks total rows ever created so IDs stay unique even
-// after rows are removed.
-let personCount = 0;
+// -------------------------------------------------------
+// In-memory people array — source of truth while on this page
+// -------------------------------------------------------
+let people = [];
 
 // -------------------------------------------------------
-// addPerson(name, salary)
-// Creates a new person card and appends it to the container.
-// Accepts optional values to pre-fill from localStorage.
+// renderPeopleList()
+// Rebuilds the compact list of added people.
 // -------------------------------------------------------
-function addPerson(name = "", salary = "") {
-  personCount++;
-  const container = document.getElementById("people-container");
+function renderPeopleList() {
+  const list = document.getElementById("people-list");
+  const empty = document.getElementById("people-list-empty");
 
-  const row = document.createElement("div");
-  row.className = "card";
-  row.id = `person-${personCount}`;
+  if (people.length === 0) {
+    list.innerHTML = "";
+    empty.style.display = "block";
+    const badge = document.getElementById("people-count-badge");
+    if (badge) badge.textContent = "";
+    return;
+  }
 
-  row.innerHTML = `
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="subheader mb-0 person-label">Person ${personCount}</h5>
-        <button class="btn btn-sm btn-outline-danger" onclick="removePerson(${personCount})">Remove</button>
+  empty.style.display = "none";
+  const badge = document.getElementById("people-count-badge");
+  if (badge) badge.textContent = `${people.length} ${people.length === 1 ? "person" : "people"}`;
+
+  list.innerHTML = people.map((p, i) => `
+    <div class="person-list-row" id="person-row-${i}">
+      <div class="person-list-info">
+        <span class="person-list-name">${p.name}</span>
+        <span class="person-list-salary">
+          $${Number(p.salary).toLocaleString()}
+          <span class="person-list-type">${p.salaryType === 'hourly' ? '/hr' : '/yr'}</span>
+        </span>
       </div>
-      <div class="row g-3">
-        <div class="col-sm-6">
-          <label class="form-label description">Name</label>
-          <input type="text" class="form-control" id="name-${personCount}"
-            placeholder="Full name" value="${name}" />
-        </div>
-        <div class="col-sm-6">
-          <label class="form-label description">Salary ($)</label>
-          <input type="text" class="form-control" id="salary-${personCount}"
-            placeholder="$0"
-            value="${salary ? "$" + Number(salary).toLocaleString("en-US") : ""}"
-            data-raw-value="${salary || ""}"
-            oninput="formatSalaryInput(this)" />
-        </div>
+      <div class="person-list-actions">
+        <button class="btn btn-sm btn-outline-secondary" onclick="editPerson(${i})">Edit</button>
+        <button class="btn btn-sm btn-outline-danger" onclick="removePerson(${i})">Remove</button>
       </div>
     </div>
-  `;
-
-  container.appendChild(row);
-  updateLabels();
+  `).join("");
 }
 
 // -------------------------------------------------------
-// removePerson(id)
-// Removes the card with the given ID and re-numbers labels.
+// addPersonFromForm()
+// Reads the add form, validates, pushes to people array,
+// saves, re-renders list, and resets the form.
 // -------------------------------------------------------
-function removePerson(id) {
-  if (!confirm("Are you sure you want to remove this person?")) return;
-  const row = document.getElementById(`person-${id}`);
-  if (row) row.remove();
-  updateLabels();
+function addPersonFromForm() {
+  const nameEl   = document.getElementById("add-name");
+  const salaryEl = document.getElementById("add-salary");
+  const name     = nameEl.value.trim();
+  const salary   = salaryEl.dataset.rawValue;
+  const salaryType = document.querySelector('input[name="add-salaryType"]:checked').value;
+
+  if (!name) { nameEl.focus(); nameEl.classList.add("is-invalid"); return; }
+  if (!salary) { salaryEl.focus(); salaryEl.classList.add("is-invalid"); return; }
+
+  people.push({ name, salary: Number(salary), salaryType });
+  savePeople();
+  renderPeopleList();
+
+  // Reset form
+  nameEl.value = "";
+  nameEl.classList.remove("is-invalid");
+  salaryEl.value = "";
+  salaryEl.dataset.rawValue = "";
+  salaryEl.classList.remove("is-invalid");
+  document.getElementById("add-annual").checked = true;
+  updateAddFormLabels("annual");
+  nameEl.focus();
 }
 
 // -------------------------------------------------------
-// updateLabels()
-// Re-numbers "Person N" headings after adds or removes.
+// removePerson(index)
+// Removes a person by index with confirmation.
 // -------------------------------------------------------
-function updateLabels() {
-  document.querySelectorAll("#people-container .card").forEach((row, i) => {
-    row.querySelector(".person-label").textContent = `Person ${i + 1}`;
-  });
+function removePerson(index) {
+  if (!confirm(`Remove ${people[index].name}?`)) return;
+  people.splice(index, 1);
+  savePeople();
+  renderPeopleList();
+}
+
+// -------------------------------------------------------
+// editPerson(index)
+// Opens the edit modal pre-filled with the person's data.
+// -------------------------------------------------------
+function editPerson(index) {
+  const p = people[index];
+  document.getElementById("edit-person-index").value = index;
+  document.getElementById("edit-person-name").value = p.name;
+
+  const salaryInput = document.getElementById("edit-person-salary");
+  salaryInput.value = "$" + Number(p.salary).toLocaleString("en-US");
+  salaryInput.dataset.rawValue = p.salary;
+
+  const typeId = p.salaryType === "hourly" ? "edit-hourly" : "edit-annual";
+  document.getElementById(typeId).checked = true;
+  updateEditFormLabels(p.salaryType || "annual");
+
+  document.getElementById("edit-person-name").classList.remove("is-invalid");
+  salaryInput.classList.remove("is-invalid");
+
+  new bootstrap.Modal(document.getElementById("editPersonModal")).show();
+}
+
+// -------------------------------------------------------
+// saveEditPerson()
+// Validates the edit modal form and updates the person.
+// -------------------------------------------------------
+function saveEditPerson() {
+  const index     = Number(document.getElementById("edit-person-index").value);
+  const nameEl    = document.getElementById("edit-person-name");
+  const salaryEl  = document.getElementById("edit-person-salary");
+  const name      = nameEl.value.trim();
+  const salary    = salaryEl.dataset.rawValue;
+  const salaryType = document.querySelector('input[name="edit-salaryType"]:checked').value;
+
+  let valid = true;
+  if (!name)   { nameEl.classList.add("is-invalid");   valid = false; }
+  if (!salary) { salaryEl.classList.add("is-invalid"); valid = false; }
+  if (!valid) return;
+
+  people[index] = { name, salary: Number(salary), salaryType };
+  savePeople();
+  renderPeopleList();
+  bootstrap.Modal.getInstance(document.getElementById("editPersonModal")).hide();
+}
+
+// -------------------------------------------------------
+// updateAddFormLabels(type) / updateEditFormLabels(type)
+// Update salary label and placeholder when type toggles.
+// -------------------------------------------------------
+function updateAddFormLabels(type) {
+  document.getElementById("add-salary-label").textContent =
+    type === "hourly" ? "Hourly Rate ($/hr)" : "Annual Salary ($)";
+  document.getElementById("add-salary").placeholder =
+    type === "hourly" ? "$0.00/hr" : "$0";
+}
+
+function updateEditFormLabels(type) {
+  document.getElementById("edit-salary-label").textContent =
+    type === "hourly" ? "Hourly Rate ($/hr)" : "Annual Salary ($)";
+  document.getElementById("edit-person-salary").placeholder =
+    type === "hourly" ? "$0.00/hr" : "$0";
+}
+
+// -------------------------------------------------------
+// formatSalaryInput(input)
+// -------------------------------------------------------
+function formatSalaryInput(input) {
+  const raw = input.value.replace(/[^0-9]/g, "");
+  input.dataset.rawValue = raw;
+  input.classList.remove("is-invalid");
+  input.value = raw === "" ? "" : "$" + Number(raw).toLocaleString("en-US");
+}
+
+// -------------------------------------------------------
+// savePeople()
+// Persists the in-memory people array to localStorage.
+// -------------------------------------------------------
+function savePeople() {
+  localStorage.setItem("salaryFormData", encodeData(people));
 }
 
 // -------------------------------------------------------
 // submitForm()
-// Validates all fields, saves to localStorage, then
-// navigates to the breakdown page.
+// Validates at least one person exists then navigates.
 // -------------------------------------------------------
 function submitForm() {
-  const rows = document.querySelectorAll("#people-container .card");
-  const people = [];
-  let valid = true;
-
-  rows.forEach((row) => {
-    const id = row.id.split("-")[1];
-    const name = document.getElementById(`name-${id}`).value.trim();
-    // Read the raw numeric value stored by formatSalaryInput, not the formatted display string
-    const salaryInput = document.getElementById(`salary-${id}`);
-    const salary = salaryInput.dataset.rawValue;
-    if (!name || !salary) {
-      valid = false;
-    } else {
-      people.push({ name, salary: Number(salary) });
-    }
-  });
-
-  if (!valid) {
-    alert("Please fill in all name and salary fields.");
-    return;
-  }
   if (people.length === 0) {
     alert("Please add at least one person.");
     return;
   }
-
-  // Save people and navigate to the breakdown page
-  localStorage.setItem("salaryFormData", encodeData(people));
+  savePeople();
   window.location.href = "breakdown.html";
 }
 
 // -------------------------------------------------------
 // resetForm()
-// Clears all people and meeting data after confirmation.
 // -------------------------------------------------------
 function resetForm() {
-  if (!confirm("Are you sure? This will clear all people and meeting data."))
-    return;
-  document.getElementById("people-container").innerHTML = "";
-  personCount = 0;
+  if (!confirm("Are you sure? This will clear all people and meeting data.")) return;
+  people = [];
   localStorage.removeItem("salaryFormData");
   localStorage.removeItem("meetingsData");
-  addPerson();
+  renderPeopleList();
+  document.getElementById("add-name").focus();
 }
 
 // -------------------------------------------------------
-// formatSalaryInput(input)
-// Fires on every keystroke in a salary field. Strips all
-// non-numeric characters, stores the raw number on the
-// data-raw-value attribute, then re-displays it formatted
-// as a dollar amount (e.g. $75,000). Preserves the cursor
-// position so typing feels natural.
-// -------------------------------------------------------
-function formatSalaryInput(input) {
-  // Strip everything except digits
-  const raw = input.value.replace(/[^0-9]/g, "");
-
-  // Store the raw number for form submission
-  input.dataset.rawValue = raw;
-
-  // Format as $1,234,567 or leave empty if nothing entered
-  if (raw === "") {
-    input.value = "";
-  } else {
-    input.value = "$" + Number(raw).toLocaleString("en-US");
-  }
-}
-
-// -------------------------------------------------------
-// Page load: restore saved people or start with one blank row
+// Page load
 // -------------------------------------------------------
 (function () {
   const saved = localStorage.getItem("salaryFormData");
   if (saved) {
-    (decodeData(saved) || []).forEach((p) => addPerson(p.name, p.salary));
-  } else {
-    addPerson();
+    people = decodeData(saved) || [];
   }
+  renderPeopleList();
+  document.getElementById("add-name").focus();
 })();

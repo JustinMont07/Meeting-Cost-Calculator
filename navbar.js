@@ -33,6 +33,12 @@
               <a class="nav-link site-nav-link ${activeIf('breakdown.html')}" href="breakdown.html">Meetings</a>
             </li>
             <li class="nav-item">
+              <a class="nav-link site-nav-link ${activeIf('compare.html')}" href="compare.html">Compare</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link site-nav-link ${activeIf('dashboard.html')}" href="dashboard.html">Dashboard</a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link site-nav-link ${activeIf('mission.html')}" href="mission.html">Our Mission</a>
             </li>
             <li class="nav-item">
