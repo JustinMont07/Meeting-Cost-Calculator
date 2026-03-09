@@ -1,152 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Star Wars Guide</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-      crossorigin="anonymous"
-    />
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-      crossorigin="anonymous"
-    ></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Londrina+Shadow&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body data-bs-theme="dark">
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="index.html">Star Wars Guide</a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarSupportedContent"
-          aria-controls="navbarSupportedContent"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="index.html"
-                >Home</a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="movies.html">Movies</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="shows.html">Shows</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="books.html">Books</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="myReviews.html">Your Reviews</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="guide.html">Beginner Guide</a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-    <div class="container">
-      <div class="row">
-        <div class="col">
-          <h1 class="header londrina-shadow-regular">
-            Your Ultimate Guide to the Galaxy!
-          </h1>
-          <p class="header">
-            Explore the best of Star Wars—movies, shows, and books—all in one
-            place. Reviews, rankings, and recommendations for fans of every era!
-          </p>
-        </div>
-      </div>
-      <!-- Adding 3 cards to Movies, Shows, and Books -->
-      <div class="row justify-content-center">
-        <!-- Card 1: Movies -->
-        <div class="col-md-4 d-flex justify-content-center">
-          <div class="card" style="width: 18rem">
-            <img
-              src="Images/RevengeoftheSith.jpg"
-              class="card-img-top"
-              alt="The cover art for the Revenge of the Sith"
-            />
-            <div class="card-body">
-              <h5 class="card-title">Movies</h5>
-              <p class="card-text">
-                Explore the Star Wars saga with my in-depth movie reviews! From
-                classics to new releases, I rank them based on story, action,
-                and iconic moments. Whether you're a lifelong fan or a newcomer,
-                rediscover the magic of Star Wars cinema here.
-              </p>
-              <a href="movies.html" class="btn btn-primary"
-                >🎬 Rank the Saga!</a
-              >
-            </div>
-          </div>
-        </div>
-        <!-- Card 2: Shows -->
-        <div class="col-md-4 d-flex justify-content-center">
-          <div class="card" style="width: 18rem">
-            <img
-              src="Images/Mando.webp"
-              class="card-img-top"
-              alt="The cover art for The Mandalorian"
-              style="object-position: left"
-            />
-            <div class="card-body">
-              <h5 class="card-title">Shows</h5>
-              <p class="card-text">
-                Star Wars shines on the small screen too! I highlight must-watch
-                shows, from animated classics to live-action hits, with reviews
-                and recommendations. Whether you love space battles or deep
-                character stories, there's a series for you!
-              </p>
-              <a href="shows.html" class="btn btn-primary"
-                >📺 Binge the Best!</a
-              >
-            </div>
-          </div>
-        </div>
-        <!-- Card 3: Books -->
-        <div class="col-md-4 d-flex justify-content-center">
-          <div class="card" style="width: 18rem">
-            <img
-              src="Images/Thrawn.jpg"
-              class="card-img-top"
-              alt="The cover art for the Thrawn book"
-            />
-            <div class="card-body">
-              <h5 class="card-title">Books</h5>
-              <p class="card-text">
-                Star Wars goes beyond the screen! I explore must-read novels and
-                comics, sharing top picks and reviews. Whether you're after epic
-                adventures or deeper character insights, these books expand the
-                galaxy in exciting ways.
-              </p>
-              <a href="books.html" class="btn btn-primary"
-                >📖 Expand the Lore!</a
-              >
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- End of cards -->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meeting Cost Calculator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"/>
+  <link href="styles.css" rel="stylesheet"/>
+  <script>
+    const t = localStorage.getItem('theme');
+    if (t) document.documentElement.setAttribute('data-theme', t);
+  </script>
+</head>
+
+<body class="home-layout">
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="shared.js"></script>
+  <script src="navbar.js"></script>
+
+  <!-- ===================== HERO ===================== -->
+  <section class="home-hero">
+    <div class="home-hero-inner">
+      <p class="home-hero-eyebrow">Know the true cost of your time</p>
+      <h1 class="home-hero-title londrina-shadow-regular">Meeting Cost Calculator</h1>
+      <p class="home-hero-subtitle">
+        Add your team, enter your meetings, and instantly see what every
+        minute in the room actually costs your organization.
+      </p>
+      <a href="people.html" class="btn btn-primary btn-lg home-cta-btn">
+        Get Started &rarr;
+      </a>
     </div>
-  </body>
+    <div class="home-hero-blob home-hero-blob-1"></div>
+    <div class="home-hero-blob home-hero-blob-2"></div>
+  </section>
+
+  <!-- ===================== FEATURE CARDS ===================== -->
+  <section class="home-features">
+    <div class="home-features-grid">
+
+      <a href="people.html" class="home-feature-card">
+        <div class="home-feature-icon">👥</div>
+        <h2 class="home-feature-title">Add People</h2>
+        <p class="home-feature-desc description">
+          Enter each attendee's name and annual salary. Your data is saved
+          locally — nothing leaves your browser.
+        </p>
+        <span class="home-feature-link">Start here &rarr;</span>
+      </a>
+
+      <a href="breakdown.html" class="home-feature-card">
+        <div class="home-feature-icon">📊</div>
+        <h2 class="home-feature-title">Calculate Meetings</h2>
+        <p class="home-feature-desc description">
+          Add one-time or recurring meetings and see a full per-person cost
+          breakdown. Toggle people in or out of each meeting.
+        </p>
+        <span class="home-feature-link">View breakdowns &rarr;</span>
+      </a>
+
+    </div>
+  </section>
+
+</body>
 </html>

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Breakdown — Meeting Cost Calculator</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link href="styles.css" rel="stylesheet" />
+    <script>
+      const t = localStorage.getItem("theme");
+      if (t) document.documentElement.setAttribute("data-theme", t);
+    </script>
+  </head>
+
+  <body>
+
+  <div class="breakdown-layout">
+
+    <!-- ===================== LEFT PANEL =====================
+       Two accordion sections: Attendees summary and Add Meeting form.
+  ======================================================= -->
+    <div class="left-panel">
+      <a href="people.html" class="back-link description">&larr; Edit People</a>
+
+      <div class="accordion accordion-flush" id="left-accordion">
+        <!-- ---- Attendees accordion section ---- -->
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="heading-attendees">
+            <button
+              class="accordion-button"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#collapse-attendees"
+              aria-expanded="true"
+              aria-controls="collapse-attendees"
+            >
+              Attendees
+            </button>
+          </h2>
+          <div
+            id="collapse-attendees"
+            class="accordion-collapse collapse show"
+            aria-labelledby="heading-attendees"
+            data-bs-parent="#left-accordion"
+          >
+            <div class="accordion-body">
+              <!-- People list items injected here by breakdown.js -->
+              <ul class="list-unstyled mb-0" id="people-summary-list"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ---- Add Meeting accordion section ---- -->
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="heading-add-meeting">
+            <button
+              class="accordion-button"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#collapse-add-meeting"
+              aria-expanded="true"
+              aria-controls="collapse-add-meeting"
+            >
+              Add Meeting
+            </button>
+          </h2>
+          <div
+            id="collapse-add-meeting"
+            class="accordion-collapse collapse show"
+            aria-labelledby="heading-add-meeting"
+          >
+            <div class="accordion-body">
+              <div class="mb-3">
+                <label class="form-label description" for="meeting-label"
+                  >Meeting Name (optional)</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="meeting-label"
+                  placeholder="e.g. Weekly Standup"
+                />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label description" for="meeting-duration"
+                  >Duration (minutes)</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="meeting-duration"
+                  placeholder="e.g. 60"
+                  min="1"
+                />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label description">Recurring?</label>
+                <div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="recurring"
+                      id="recurring-yes"
+                      value="yes"
+                      onchange="toggleRecurring()"
+                    />
+                    <label
+                      class="form-check-label description"
+                      for="recurring-yes"
+                      >Yes</label
+                    >
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="recurring"
+                      id="recurring-no"
+                      value="no"
+                      onchange="toggleRecurring()"
+                      checked
+                    />
+                    <label
+                      class="form-check-label description"
+                      for="recurring-no"
+                      >No</label
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <div id="recurring-fields" style="display: none" class="mb-3">
+                <label class="form-label description" for="times-per-month"
+                  >Times per month</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="times-per-month"
+                  placeholder="e.g. 4"
+                  min="1"
+                />
+              </div>
+
+              <button class="btn btn-primary w-100" onclick="addMeeting()">
+                Add Meeting
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /left-accordion -->
+    </div>
+    <!-- /left-panel -->
+
+    <!-- ===================== RIGHT PANEL =====================
+       Scrollable accordion of meeting breakdown cards.
+       Each meeting is one collapsible accordion item.
+  ========================================================= -->
+    <div class="right-panel">
+      <h2 class="header londrina-shadow-regular mb-3">Cost Breakdown</h2>
+
+      <!-- Shown when more than one meeting exists — injected by breakdown.js -->
+      <div
+        id="total-cost-banner"
+        style="display: none"
+        class="total-cost-banner mb-4"
+      >
+        <span class="total-cost-label">Total across all meetings:</span>
+        <span class="total-cost-value" id="total-cost-value"></span>
+      </div>
+
+      <!-- Meeting accordion items injected here by breakdown.js -->
+      <div class="accordion" id="meetings-accordion">
+        <div id="meetings-container"></div>
+      </div>
+
+      <!-- Shown when no meetings have been added yet -->
+      <div id="empty-state" class="empty-state">
+        <p class="description text-muted text-center">
+          No meetings added yet.<br />
+          Use the form on the left to add your first meeting.
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /breakdown-layout -->
+
+    <!-- Bootstrap JS required for accordion toggling -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="shared.js"></script>
+    <script src="navbar.js"></script>
+    <script src="breakdown.js"></script>
+  </body>
+</html>
