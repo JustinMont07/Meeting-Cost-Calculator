@@ -3,6 +3,24 @@
 // Handles all logic for the person entry form on index.html.
 // ============================================================
 
+
+// -------------------------------------------------------
+// encodeData / decodeData
+// Base64 encodes data before writing to localStorage so
+// salary figures are not stored as plain readable JSON.
+// -------------------------------------------------------
+function encodeData(data) {
+  return btoa(JSON.stringify(data));
+}
+
+function decodeData(raw) {
+  try {
+    return JSON.parse(atob(raw));
+  } catch {
+    return null;
+  }
+}
+
 // Tracks total rows ever created so IDs stay unique even
 // after rows are removed.
 let personCount = 0;
@@ -102,7 +120,7 @@ function submitForm() {
   }
 
   // Save people and navigate to the breakdown page
-  localStorage.setItem("salaryFormData", JSON.stringify(people));
+  localStorage.setItem("salaryFormData", encodeData(people));
   window.location.href = "breakdown.html";
 }
 
@@ -149,7 +167,7 @@ function formatSalaryInput(input) {
 (function () {
   const saved = localStorage.getItem("salaryFormData");
   if (saved) {
-    JSON.parse(saved).forEach((p) => addPerson(p.name, p.salary));
+    (decodeData(saved) || []).forEach((p) => addPerson(p.name, p.salary));
   } else {
     addPerson();
   }

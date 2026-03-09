@@ -972,11 +972,16 @@ hr {
   color: var(--accent);
 }
 
-
 /* ============================================================
-   NAVBAR
+   ADDITIONS — navbar, pages, footer, polish, dark mode fixes
    ============================================================ */
 
+/* Hide the old fixed theme toggle — replaced by navbar button */
+.theme-toggle {
+  display: none;
+}
+
+/* ---- Navbar ---- */
 .site-nav {
   background-color: var(--bg-card);
   border-bottom: 1px solid var(--sage-subtle);
@@ -993,7 +998,6 @@ hr {
   font-size: 1.15rem;
   color: var(--sage-dark) !important;
   text-decoration: none;
-  letter-spacing: 0.01em;
 }
 
 .site-nav-link {
@@ -1021,37 +1025,66 @@ hr {
   border-color: var(--sage-light);
 }
 
-.site-nav-cta {
+.site-nav-theme-btn {
+  font-family: 'Source Sans 3', sans-serif;
   font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--sage-subtle);
+  border: 1px solid var(--sage-light);
+  border-radius: 6px;
+  padding: 0.3rem 0.75rem;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
 }
 
-/* Adjust pages with a navbar — add top padding so content isn't under sticky nav */
-.home-layout,
-.content-layout {
-  padding-top: 0;
+.site-nav-theme-btn:hover {
+  background: var(--sage-light);
+  color: var(--text-primary);
 }
 
+/* ---- Hamburger dark mode ---- */
+[data-theme="dark"] .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%23a8c5ab' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+[data-theme="dark"] .site-nav-toggler {
+  border-color: var(--sage-light);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%23a8c5ab' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+  }
+  :root:not([data-theme="light"]) .site-nav-toggler {
+    border-color: var(--sage-light);
+  }
+}
+
+/* ---- Breakdown layout — adjust for sticky navbar height ---- */
 .breakdown-layout {
+  display: flex;
   height: calc(100vh - 57px);
-  margin-top: 0;
+  overflow: hidden;
 }
 
-/* Remove the old fixed theme-toggle button on pages that use the navbar */
-.theme-toggle {
-  display: none;
+/* Reduce top padding on panels — no more fixed toggle to clear */
+.left-panel {
+  padding-top: 1.5rem;
 }
 
+.right-panel {
+  padding-top: 1.5rem;
+}
 
-/* ============================================================
-   HOME PAGE
-   ============================================================ */
-
+/* ---- Home page ---- */
 .home-layout {
-  background-color: var(--bg-page);
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  background-color: var(--bg-page);
 }
 
-/* Hero section */
 .home-hero {
   position: relative;
   overflow: hidden;
@@ -1098,7 +1131,6 @@ hr {
   border-radius: 8px;
 }
 
-/* Decorative background blobs */
 .home-hero-blob {
   position: absolute;
   border-radius: 50%;
@@ -1123,8 +1155,8 @@ hr {
   left: -60px;
 }
 
-/* Feature cards */
 .home-features {
+  flex: 1;
   padding: 1rem 2rem 5rem;
 }
 
@@ -1181,17 +1213,16 @@ hr {
   margin-top: 0.5rem;
 }
 
-
-/* ============================================================
-   CONTENT PAGES (Mission, Contact)
-   ============================================================ */
-
+/* ---- Content pages (Mission, Contact, Legal) ---- */
 .content-layout {
-  background-color: var(--bg-page);
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  background-color: var(--bg-page);
 }
 
 .content-page {
+  flex: 1;
   max-width: 680px;
   margin: 0 auto;
   padding: 3.5rem 1.5rem 5rem;
@@ -1225,11 +1256,16 @@ hr {
   gap: 1.25rem;
 }
 
-/* Contact form card */
-.contact-card {
-  margin-top: 0.5rem;
+/* ---- People page wrapper ---- */
+.people-page-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 3rem 1rem 5rem;
+  flex: 1;
 }
 
+/* ---- Contact form ---- */
 .contact-confirmation {
   display: flex;
   align-items: center;
@@ -1248,87 +1284,258 @@ hr {
   flex-shrink: 0;
 }
 
-/* ============================================================
-   RESPONSIVE — stack left/right panels on small screens
-   ============================================================ */
-
-@media (max-width: 768px) {
-  .breakdown-layout {
-    height: auto;
-    flex-direction: column;
-  }
-
-  .left-panel {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--sage-subtle);
-    overflow-y: visible;
-  }
-
-  .right-panel {
-    overflow-y: visible;
-    padding-bottom: 3rem;
-  }
-
-  .home-hero {
-    padding: 4rem 1.25rem 3rem;
-  }
-
-  .content-page {
-    padding: 2rem 1.25rem 4rem;
-  }
-
-  .content-cta {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+/* ---- Legal page ---- */
+.legal-subheading {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 1.25rem;
+  margin-bottom: 0.35rem;
 }
 
-/* ============================================================
-   LAYOUT FIXES — navbar-aware wrappers
-   ============================================================ */
+.legal-divider {
+  border-color: var(--sage-subtle);
+  margin: 2.5rem 0;
+}
 
-/* People page centering wrapper */
-.people-page-wrapper {
+/* ---- Footer ---- */
+.site-footer {
+  background-color: var(--bg-card);
+  border-top: 1px solid var(--sage-subtle);
+  padding: 1.5rem 2rem;
+  margin-top: auto;
+}
+
+.site-footer-inner {
+  max-width: 900px;
+  margin: 0 auto;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 3rem 1rem 5rem;
-  min-height: calc(100vh - 57px);
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
-/* Breakdown two-panel layout — now a div, not body */
-.breakdown-layout {
+.site-footer-brand {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.site-footer-links {
   display: flex;
-  height: calc(100vh - 57px);
-  overflow: hidden;
+  gap: 1.25rem;
 }
 
-@media (max-width: 768px) {
-  .breakdown-layout {
-    height: auto;
-    flex-direction: column;
-  }
-  .people-page-wrapper {
-    padding: 2rem 1rem 4rem;
-  }
-}
-
-/* Theme toggle button in navbar */
-.site-nav-theme-btn {
+.site-footer-links a {
   font-family: 'Source Sans 3', sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-secondary);
-  background: var(--sage-subtle);
-  border: 1px solid var(--sage-light);
-  border-radius: 6px;
-  padding: 0.3rem 0.75rem;
-  transition: background 0.15s, color 0.15s;
-  white-space: nowrap;
+  text-decoration: none;
+  transition: color 0.15s;
 }
 
-.site-nav-theme-btn:hover {
+.site-footer-links a:hover {
+  color: var(--sage-dark);
+}
+
+.site-footer-note {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  width: 100%;
+}
+
+/* ---- Polish ---- */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.meeting-accordion-item {
+  animation: fadeSlideIn 0.2s ease forwards;
+}
+
+.meeting-accordion-item:hover {
+  box-shadow: var(--shadow-md);
+  transition: box-shadow 0.2s ease;
+}
+
+.left-panel::-webkit-scrollbar,
+.right-panel::-webkit-scrollbar { width: 6px; }
+
+.left-panel::-webkit-scrollbar-track,
+.right-panel::-webkit-scrollbar-track { background: transparent; }
+
+.left-panel::-webkit-scrollbar-thumb,
+.right-panel::-webkit-scrollbar-thumb {
   background: var(--sage-light);
+  border-radius: 99px;
+}
+
+.meeting-total { font-size: 1.1rem; padding-top: 0.25rem; }
+
+.meeting-accordion-title { font-size: 1.05rem; }
+
+.meeting-recurring-badge {
+  display: inline-block;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background-color: var(--sage-subtle);
+  color: var(--sage-dark);
+  border: 1px solid var(--sage-light);
+  border-radius: 99px;
+  padding: 0.1rem 0.5rem;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.total-cost-banner {
+  border-left: 4px solid var(--sage);
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  border-radius: 8px;
+}
+
+.meeting-accordion-total {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.person-toggle-hint { font-style: italic; }
+
+.person-row:focus-visible {
+  outline: 2px solid var(--sage);
+  outline-offset: -2px;
+}
+
+.back-link {
+  transition: color 0.2s, transform 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.back-link:hover { transform: translateX(-3px); }
+
+/* ---- Attended input ---- */
+.attended-col { width: 80px; white-space: nowrap; }
+
+.attended-input {
+  width: 44px;
+  padding: 0.15rem 0.3rem;
+  font-size: 0.82rem;
+  font-family: 'Source Sans 3', sans-serif;
+  text-align: center;
+  border: 1px solid var(--sage-light);
+  border-radius: 4px;
+  background: var(--bg-card-inner);
   color: var(--text-primary);
+  -moz-appearance: textfield;
+}
+
+.attended-input:focus {
+  outline: 2px solid var(--sage);
+  outline-offset: 1px;
+  border-color: var(--sage);
+}
+
+.attended-max {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-left: 1px;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .breakdown-layout {
+    height: auto;
+    flex-direction: column;
+    overflow: visible;
+  }
+  .left-panel {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow-y: visible;
+  }
+  .right-panel { overflow-y: visible; padding-bottom: 3rem; }
+  .home-hero { padding: 4rem 1.25rem 3rem; }
+  .content-page { padding: 2rem 1.25rem 4rem; }
+  .content-cta { flex-direction: column; align-items: flex-start; }
+  .people-page-wrapper { padding: 2rem 1rem 4rem; }
+  .site-footer-inner { flex-direction: column; align-items: flex-start; }
+}
+
+/* ---- Contact page link cards ---- */
+.contact-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.contact-link-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  text-decoration: none;
+  transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
+}
+
+.contact-link-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateX(4px);
+  border-color: var(--sage-light);
+}
+
+.contact-link-icon {
+  font-size: 1.5rem;
+  width: 2rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.contact-link-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.contact-link-label {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.contact-link-value {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.1rem;
+}
+
+.contact-link-arrow {
+  font-size: 1rem;
+  color: var(--sage-dark);
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.contact-link-card:hover .contact-link-arrow {
+  transform: translateX(3px);
 }

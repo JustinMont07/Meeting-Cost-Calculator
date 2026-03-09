@@ -11,21 +11,38 @@ const usdFormatter = new Intl.NumberFormat("en-US", {
 });
 
 // -------------------------------------------------------
+// encodeData / decodeData
+// Base64 encodes data before writing to localStorage so
+// salary figures are not stored as plain readable JSON.
+// -------------------------------------------------------
+function encodeData(data) {
+  return btoa(JSON.stringify(data));
+}
+
+function decodeData(raw) {
+  try {
+    return JSON.parse(atob(raw));
+  } catch {
+    return null;
+  }
+}
+
+// -------------------------------------------------------
 // Data helpers
 // -------------------------------------------------------
 
 function getMeetings() {
   const saved = localStorage.getItem("meetingsData");
-  return saved ? JSON.parse(saved) : [];
+  return saved ? decodeData(saved) || [] : [];
 }
 
 function saveMeetings(meetings) {
-  localStorage.setItem("meetingsData", JSON.stringify(meetings));
+  localStorage.setItem("meetingsData", encodeData(meetings));
 }
 
 function getPeople() {
   const saved = localStorage.getItem("salaryFormData");
-  return saved ? JSON.parse(saved) : [];
+  return saved ? decodeData(saved) || [] : [];
 }
 
 // -------------------------------------------------------
@@ -74,6 +91,7 @@ function addMeeting() {
     isRecurring,
     timesPerMonth,
     excludedNames: [], // names of people excluded from this meeting's cost
+    attendedCounts: {}, // per-person override of meetings attended (recurring only)
   });
   saveMeetings(meetings);
 
@@ -126,6 +144,30 @@ function togglePerson(meetingId, personName, event) {
 }
 
 // -------------------------------------------------------
+// updateAttended(meetingId, personName, value, event)
+// Updates how many meetings a person attended this year.
+// Clamps to [0, timesPerMonth * 12]. Stops propagation so
+// the input click doesn't toggle the person row.
+// -------------------------------------------------------
+function updateAttended(meetingId, personName, value, event) {
+  if (event) event.stopPropagation();
+  const meetings = getMeetings();
+  const meeting = meetings.find((m) => m.id === meetingId);
+  if (!meeting) return;
+
+  const max = meeting.timesPerMonth * 12;
+  let count = parseInt(value, 10);
+  if (isNaN(count) || count < 0) count = 0;
+  if (count > max) count = max;
+
+  if (!meeting.attendedCounts) meeting.attendedCounts = {};
+  meeting.attendedCounts[personName] = count;
+
+  saveMeetings(meetings);
+  renderSingleMeeting(meeting, getPeople());
+}
+
+// -------------------------------------------------------
 // calculateBreakdown(meeting, people)
 // Returns per-person breakdowns and the included-only total.
 //
@@ -138,7 +180,9 @@ function calculateBreakdown(meeting, people) {
   var totalResult = 0;
   var message = "Cost";
   const excluded = meeting.excludedNames || [];
-  const breakdowns = []; // Stores { name, salary, cost, isExcluded } for each person
+  const attendedCounts = meeting.attendedCounts || {};
+  const maxMeetings = meeting.isRecurring ? meeting.timesPerMonth * 12 : 1;
+  const breakdowns = []; // Stores { name, salary, cost, isExcluded, attended } for each person
 
   for (let i = 0; i < people.length; i++) {
     const isExcluded = excluded.includes(people[i].name);
@@ -146,17 +190,28 @@ function calculateBreakdown(meeting, people) {
     var personResult = meeting.durationMins * salMinute;
 
     if (meeting.isRecurring) {
-      personResult = personResult * meeting.timesPerMonth * 12;
+      const attended =
+        attendedCounts[people[i].name] !== undefined
+          ? attendedCounts[people[i].name]
+          : maxMeetings;
+      personResult = personResult * attended;
       message = "Total Cost per year";
     }
 
     if (!isExcluded) totalResult += personResult;
+
+    const attended = meeting.isRecurring
+      ? attendedCounts[people[i].name] !== undefined
+        ? attendedCounts[people[i].name]
+        : maxMeetings
+      : null;
 
     breakdowns.push({
       name: people[i].name,
       salary: people[i].salary,
       cost: personResult,
       isExcluded,
+      attended,
     });
   }
 
@@ -189,6 +244,7 @@ function buildAccordionItem(meeting, people, isOpen) {
            <tr>
              <th class="subheader">Name</th>
              <th class="subheader">Salary</th>
+             ${meeting.isRecurring ? '<th class="subheader attended-col">Attended</th>' : ""}
              <th class="subheader">${message}</th>
            </tr>
          </thead>
@@ -206,6 +262,22 @@ function buildAccordionItem(meeting, people, isOpen) {
                  ${b.name}
                </td>
                <td class="description">$${b.salary.toLocaleString()}</td>
+               ${
+                 meeting.isRecurring
+                   ? `
+               <td class="description attended-col" onclick="event.stopPropagation()">
+                 <input type="number"
+                   class="attended-input"
+                   value="${b.attended}"
+                   min="0"
+                   max="${meeting.timesPerMonth * 12}"
+                   onchange="updateAttended(${meeting.id}, '${b.name.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}', this.value, event)"
+                   onclick="event.stopPropagation()"
+                   title="Meetings attended out of ${meeting.timesPerMonth * 12} total" />
+                 <span class="attended-max">/${meeting.timesPerMonth * 12}</span>
+               </td>`
+                   : ""
+               }
                <td class="description">${usdFormatter.format(b.cost)}</td>
              </tr>`,
              )
@@ -239,7 +311,7 @@ function buildAccordionItem(meeting, people, isOpen) {
             ${people.length > 0 ? `<span class="meeting-accordion-total">${usdFormatter.format(totalResult)}</span>` : ""}
           </span>
           <span class="meeting-accordion-detail">
-            ${meeting.durationMins} min${meeting.isRecurring ? ` &middot; Recurring &middot; ${meeting.timesPerMonth}&times;/month` : " &middot; One-time"}
+            ${meeting.durationMins} min${meeting.isRecurring ? ` &middot; Recurring &middot; ${meeting.timesPerMonth}&times;/month &middot; ${meeting.timesPerMonth * 12} total meetings` : " &middot; One-time"}
           </span>
         </span>
         <!-- Remove button sits inside the header but stops propagation -->

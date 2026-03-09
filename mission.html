@@ -65,9 +65,18 @@
         <h2 class="subheader">Private by design</h2>
         <p class="description">
           All data entered into this tool stays entirely in your browser.
-          There is no server, no account, no analytics on your inputs.
-          Salary figures are sensitive — we built this so you never have to
-          think twice about entering them.
+          There is no server, no account, and no analytics on your inputs.
+          Salary data is Base64 encoded before being saved locally, so it
+          is not sitting as plain readable text in your browser's storage.
+        </p>
+        <p class="description">
+          That said, it is worth knowing that browser extensions running
+          on your device can read local storage, so if you have untrusted
+          extensions installed you should be aware of that. We do not load
+          any third-party advertising or tracking scripts — the only
+          external resources this site uses are Bootstrap for layout and
+          Google Fonts for typography, neither of which have access to
+          your data.
         </p>
       </div>
 
@@ -79,5 +88,6 @@
     </div>
   </div>
 
+  <script src="footer.js"></script>
 </body>
 </html>
