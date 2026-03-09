@@ -41,7 +41,7 @@
               aria-expanded="false"
               aria-controls="collapse-attendees"
             >
-              Attendees
+              Attendees <span id="attendees-count-badge" class="left-panel-count-badge"></span>
             </button>
           </h2>
           <div
@@ -207,10 +207,9 @@
 
       <!-- Shown when no meetings have been added yet -->
       <div id="empty-state" class="empty-state">
-        <p class="description text-muted text-center">
-          No meetings added yet.<br />
-          Use the form on the left to add your first meeting.
-        </p>
+        <div class="empty-state-icon">📋</div>
+        <p class="empty-state-heading">No meetings yet</p>
+        <p class="description text-muted text-center">Use the <strong>Add Meeting</strong> form on the left<br>to add your first meeting.</p>
       </div>
     </div>
 
@@ -287,7 +286,6 @@
   </div>
 
     <!-- Bootstrap JS required for accordion toggling -->
-  
   <!-- ===== UNDO TOAST ===== -->
   <div id="undo-toast" class="undo-toast">
     <span id="undo-toast-msg"></span>

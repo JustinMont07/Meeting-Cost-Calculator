@@ -1519,7 +1519,6 @@ label {
   border-radius: 4px;
   background: var(--bg-card-inner);
   color: var(--text-primary);
-  appearance: textfield;
   -moz-appearance: textfield;
 }
 
@@ -2959,7 +2958,7 @@ label {
   position: fixed;
   bottom: 1.5rem;
   left: 50%;
-  transform: translateX(-50%) translateY(120%);
+  transform: translateX(-50%) translateY(160%);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -3200,4 +3199,31 @@ label {
     max-width: 100%;
     width: 100%;
   }
+}
+
+/* ---- Attendees count badge (breakdown left panel) ---- */
+.left-panel-count-badge {
+  font-family: "Source Sans 3", sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  background: var(--sage-subtle);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+/* ---- Breakdown empty state ---- */
+.empty-state-icon {
+  font-size: 2.2rem;
+  margin-bottom: 0.4rem;
+}
+
+.empty-state-heading {
+  font-family: "Playfair Display", serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
 }

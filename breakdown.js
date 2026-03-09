@@ -24,7 +24,7 @@ function saveUndoSnapshot(label) {
 }
 
 function showUndoToast(label) {
-  let toast = document.getElementById("undo-toast");
+  const toast = document.getElementById("undo-toast");
   if (!toast) return;
   document.getElementById("undo-toast-msg").textContent = `"${label}" removed.`;
   toast.classList.add("undo-toast-visible");
@@ -213,10 +213,6 @@ function removeMeeting(id, event) {
   renderMeetings();
   showUndoToast(target.label);
 }
-
-
-// -------------------------------------------------------
-// duplicateMeeting(id, event)
 // Creates a copy of a meeting with a " (Copy)" suffix.
 // -------------------------------------------------------
 function duplicateMeeting(id, event) {
@@ -546,6 +542,12 @@ function renderPeopleSummary() {
   const people = getPeople();
   const list = document.getElementById("people-summary-list");
   if (!list) return;
+
+  // Update count badge on the Attendees accordion header
+  const badge = document.getElementById("attendees-count-badge");
+  if (badge) {
+    badge.textContent = people.length > 0 ? people.length : "";
+  }
 
   if (people.length === 0) {
     list.innerHTML = '<li class="description small">No people added yet.</li>';
