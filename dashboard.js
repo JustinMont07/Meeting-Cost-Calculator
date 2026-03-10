@@ -283,6 +283,14 @@ function render() {
 // -------------------------------------------------------
 // Page load
 // -------------------------------------------------------
+function toggleMobileFilters() {
+  const sidebar = document.getElementById('dashboard-sidebar');
+  const btn = document.getElementById('filters-toggle-btn');
+  if (!sidebar) return;
+  const isOpen = sidebar.classList.toggle('filters-open');
+  if (btn) btn.textContent = isOpen ? '✕ Close' : '⚙ Filters';
+}
+
 (function () {
   restoreFilterPrefs();
   render();

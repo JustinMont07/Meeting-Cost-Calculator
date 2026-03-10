@@ -651,6 +651,7 @@ label {
 /* ---- Empty state (no meetings added yet) ---- */
 .empty-state {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 40vh;
@@ -1510,7 +1511,7 @@ label {
 }
 
 .attended-input {
-  width: 44px;
+  width: 54px;
   padding: 0.15rem 0.3rem;
   font-size: 0.82rem;
   font-family: "Source Sans 3", sans-serif;
@@ -2680,6 +2681,7 @@ label {
   min-height: calc(100vh - 57px);
   padding: 2.5rem 2rem 5rem;
   max-width: 1280px;
+  width: 100%;
   margin: 0 auto;
   align-items: flex-start;
   box-sizing: border-box;
@@ -2688,8 +2690,16 @@ label {
 /* ---- Sidebar ---- */
 .dashboard-sidebar {
   flex: 0 0 400px;
+  max-width: 400px;
+  min-width: 0;
   position: sticky;
   top: calc(57px + 1.5rem);
+}
+
+.dashboard-main {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .dashboard-filter-card {
@@ -2932,13 +2942,28 @@ label {
 @media (max-width: 768px) {
   .dashboard-layout {
     flex-direction: column;
-    padding: 1.5rem 1rem 4rem;
+    padding: 1rem 0.75rem 4rem;
+    gap: 1rem;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   .dashboard-sidebar {
     flex: none;
     width: 100%;
+    max-width: 100%;
     position: static;
+  }
+
+  .dashboard-main {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .dashboard-sidebar.filters-open,
+  .dashboard-sidebar {
+    display: block;
   }
 
   .dashboard-stat-row {
@@ -2946,7 +2971,8 @@ label {
   }
 
   .dashboard-bar-row {
-    grid-template-columns: 120px 1fr 75px;
+    grid-template-columns: 90px 1fr 68px;
+    gap: 0.4rem;
   }
 }
 
@@ -2958,7 +2984,7 @@ label {
   position: fixed;
   bottom: 1.5rem;
   left: 50%;
-  transform: translateX(-50%) translateY(160%);
+  transform: translateX(-50%) translateY(120%);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -3166,22 +3192,27 @@ label {
    ================================================================ */
 
 .dashboard-sidebar-title-row {
-  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
 }
 
 .dashboard-reset-btn {
   font-size: 0.78rem;
-  margin-top: 0.6rem;
 }
 
 .dashboard-filters-row {
   display: flex;
   gap: 0.75rem;
   align-items: flex-start;
+  width: 100%;
+  min-width: 0;
 }
 
 .dashboard-filter-meetings {
   flex: 0 0 175px;
+  min-width: 0;
 }
 
 .dashboard-filter-secondary {
@@ -3189,15 +3220,22 @@ label {
   min-width: 0;
 }
 
-/* On narrow sidebar (stacked layout), go vertical */
+/* On narrow sidebar — always stack vertically since sidebar is full-width on mobile */
 @media (max-width: 768px) {
   .dashboard-filters-row {
     flex-direction: column;
+    width: 100%;
   }
 
   .dashboard-filter-meetings {
-    max-width: 100%;
+    flex: none;
     width: 100%;
+    max-width: 100%;
+  }
+
+  .dashboard-filter-secondary {
+    width: 100%;
+    max-width: 100%;
   }
 }
 
@@ -3226,4 +3264,238 @@ label {
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 0.3rem;
+}
+
+/* ================================================================
+   Dashboard main header
+   ================================================================ */
+.dashboard-main-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ================================================================
+   Print / PDF styles
+   Applies when user hits Print or saves as PDF.
+   ================================================================ */
+@media print {
+  /* ---- Global resets ---- */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #1a1a1a !important;
+  }
+
+  /* ---- Hide non-content chrome ---- */
+  #site-navbar,
+  footer,
+  .left-panel,
+  .dashboard-sidebar,
+  .undo-toast,
+  .btn,
+  .right-panel-header .d-flex,
+  .dashboard-main-header .btn,
+  .total-cost-dashboard-link,
+  .template-btn-link,
+  .meeting-accordion-actions,
+  #total-cost-banner a,
+  .modal {
+    display: none !important;
+  }
+
+  /* ---- Breakdown page: full-width right panel ---- */
+  .breakdown-layout {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  .right-panel {
+    width: 100% !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  .right-panel-header {
+    display: flex !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Expand all meeting accordions for print */
+  .accordion-collapse {
+    display: block !important;
+    height: auto !important;
+  }
+
+  .accordion-button::after {
+    display: none !important;
+  }
+
+  .accordion-button {
+    pointer-events: none;
+    box-shadow: none !important;
+  }
+
+  /* ---- Dashboard page: hide sidebar, full-width main ---- */
+  .dashboard-layout {
+    display: block !important;
+    padding: 0 !important;
+  }
+
+  .dashboard-main {
+    width: 100% !important;
+  }
+
+  .dashboard-stat-row {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* ---- Page breaks ---- */
+  .dashboard-chart-card,
+  .dashboard-table-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .accordion-item {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* ---- Cards: flatten shadows for print ---- */
+  .card,
+  .accordion-item,
+  .accordion-button {
+    box-shadow: none !important;
+    border-color: #ccc !important;
+  }
+
+  /* ---- Total cost banner ---- */
+  #total-cost-banner {
+    border: 1px solid #ccc !important;
+    background: #f5f5f5 !important;
+  }
+}
+
+/* ================================================================
+   Dashboard mobile filter card
+   ================================================================ */
+
+/* Mobile card chrome — hidden on desktop */
+.dashboard-mobile-filter-header {
+  display: none;
+}
+
+/* Desktop title row — visible on desktop only */
+.dashboard-sidebar-title-row {
+  /* already defined above — no change needed for desktop */
+}
+
+@media (max-width: 768px) {
+  /* Sidebar hidden by default on mobile */
+  .dashboard-sidebar {
+    display: none;
+    width: 100%;
+    max-width: 100%;
+    position: static;
+    flex: none;
+    margin-bottom: 1rem;
+  }
+
+  /* Shown when toggled */
+  .dashboard-sidebar.filters-open {
+    display: block;
+  }
+
+  /* Wrap everything in a single card on mobile */
+  .dashboard-mobile-filter-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-card);
+  }
+
+  /* Show the mobile header (Filters label + Reset + Close) */
+  .dashboard-mobile-filter-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--sage-subtle);
+    background: var(--bg-card-inner, var(--sage-subtle));
+  }
+
+  /* Hide the desktop title row on mobile */
+  .dashboard-sidebar-title-row {
+    display: none !important;
+  }
+
+  /* Padding inside the card */
+  .dashboard-mobile-filter-card > .dashboard-filters-row {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  /* Remove card borders from inner cards — they're inside the outer card already */
+  .dashboard-mobile-filter-card .dashboard-filter-card {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* Add subtle dividers between sections instead */
+  .dashboard-mobile-filter-card .dashboard-filter-meetings {
+    border-bottom: 1px solid var(--sage-subtle) !important;
+    border-radius: 0 !important;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0;
+  }
+
+  .dashboard-mobile-filter-card
+    .dashboard-filter-secondary
+    .dashboard-filter-card:not(:last-child) {
+    border-bottom: 1px solid var(--sage-subtle) !important;
+    border-radius: 0 !important;
+  }
+
+  .dashboard-mobile-close-btn {
+    font-size: 0.78rem;
+    padding: 0.2rem 0.6rem;
+  }
+}
+
+/* Mobile filter card reset button */
+.dashboard-mobile-reset-btn {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.dashboard-mobile-reset-btn:hover {
+  color: var(--sage-dark);
+}
+
+/* ---- Tighter vertical spacing on mobile ---- */
+@media (max-width: 768px) {
+  .dashboard-main-header {
+    margin-bottom: 1rem !important;
+  }
+
+  .dashboard-stat-row {
+    margin-bottom: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .dashboard-chart-card {
+    margin-bottom: 0.75rem !important;
+  }
+
+  .dashboard-stat-card {
+    padding: 0.75rem 1rem;
+  }
 }

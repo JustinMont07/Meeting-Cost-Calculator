@@ -17,77 +17,101 @@
   <div class="dashboard-layout">
 
     <!-- ===== LEFT: filter sidebar ===== -->
-    <aside class="dashboard-sidebar">
-      <div class="dashboard-sidebar-title-row">
-        <h2 class="header londrina-shadow-regular mb-1">Cost Dashboard</h2>
-        <p class="header mb-0">Annual cost across all your meetings.</p>
-        <button class="btn btn-outline-secondary btn-sm dashboard-reset-btn" onclick="resetAllFilters()">Reset filters</button>
-      </div>
+    <aside class="dashboard-sidebar" id="dashboard-sidebar">
 
-      <div class="dashboard-filters-row">
-
-        <!-- Meetings list -->
-        <div class="card dashboard-filter-card dashboard-filter-meetings">
-          <div class="card-body p-0">
-            <div class="dashboard-filter-header">
-              <span class="subheader">Meetings</span>
-              <button class="btn btn-link btn-sm dashboard-toggle-all-btn" onclick="toggleAllMeetings()">Deselect all</button>
-            </div>
-            <div id="dashboard-filter-list"></div>
+      <!-- Mobile-only card wrapper + close button -->
+      <div class="dashboard-mobile-filter-card">
+        <div class="dashboard-mobile-filter-header">
+          <span class="subheader">Filters</span>
+          <div class="d-flex gap-2 align-items-center">
+            <button class="btn btn-link btn-sm p-0 dashboard-mobile-reset-btn" onclick="resetAllFilters()">Reset</button>
+            <button class="btn btn-sm btn-outline-secondary dashboard-mobile-close-btn" onclick="toggleMobileFilters()">✕ Close</button>
           </div>
         </div>
 
-        <!-- Type + Min cost -->
-        <div class="dashboard-filter-secondary">
-
-          <div class="card dashboard-filter-card mb-3">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <label class="dashboard-filter-section-label mb-0">Meeting type</label>
-                <button class="btn btn-link btn-sm dashboard-toggle-all-btn" id="type-select-all-btn" onclick="selectAllTypes()">Select all</button>
-              </div>
-              <div class="dashboard-type-filters">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="filter-recurring" checked onchange="saveFilterPrefs(); render()" />
-                  <label class="form-check-label description" for="filter-recurring">
-                    <span class="cmp-card-badge cmp-badge-recurring">Recurring</span>
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="filter-fixed" checked onchange="saveFilterPrefs(); render()" />
-                  <label class="form-check-label description" for="filter-fixed">
-                    <span class="cmp-card-badge cmp-badge-fixed">Fixed sessions</span>
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="filter-onetime" checked onchange="saveFilterPrefs(); render()" />
-                  <label class="form-check-label description" for="filter-onetime">
-                    <span class="cmp-card-badge cmp-badge-onetime">One-time</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card dashboard-filter-card">
-            <div class="card-body">
-              <label class="dashboard-filter-section-label" for="filter-min-cost">Minimum cost</label>
-              <div class="dashboard-mincost-row">
-                <span class="dashboard-mincost-prefix">$</span>
-                <input type="number" class="form-control form-control-sm dashboard-mincost-input"
-                  id="filter-min-cost" placeholder="0" min="0"
-                  oninput="saveFilterPrefs(); render()" />
-              </div>
-              <div class="form-text description dashboard-mincost-hint">Hide meetings below this cost</div>
-            </div>
-          </div>
-
+        <!-- Desktop title row (hidden on mobile) -->
+        <div class="dashboard-sidebar-title-row">
+          <span class="subheader">Filters</span>
+          <button class="btn btn-outline-secondary btn-sm dashboard-reset-btn" onclick="resetAllFilters()">Reset</button>
         </div>
-      </div>
+
+        <div class="dashboard-filters-row">
+
+          <!-- Meetings list -->
+          <div class="card dashboard-filter-card dashboard-filter-meetings">
+            <div class="card-body p-0">
+              <div class="dashboard-filter-header">
+                <span class="subheader">Meetings</span>
+                <button class="btn btn-link btn-sm dashboard-toggle-all-btn" onclick="toggleAllMeetings()">Deselect all</button>
+              </div>
+              <div id="dashboard-filter-list"></div>
+            </div>
+          </div>
+
+          <!-- Type + Min cost -->
+          <div class="dashboard-filter-secondary">
+
+            <div class="card dashboard-filter-card mb-3">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <label class="dashboard-filter-section-label mb-0">Meeting type</label>
+                  <button class="btn btn-link btn-sm dashboard-toggle-all-btn" id="type-select-all-btn" onclick="selectAllTypes()">Select all</button>
+                </div>
+                <div class="dashboard-type-filters">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="filter-recurring" checked onchange="saveFilterPrefs(); render()" />
+                    <label class="form-check-label description" for="filter-recurring">
+                      <span class="cmp-card-badge cmp-badge-recurring">Recurring</span>
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="filter-fixed" checked onchange="saveFilterPrefs(); render()" />
+                    <label class="form-check-label description" for="filter-fixed">
+                      <span class="cmp-card-badge cmp-badge-fixed">Fixed sessions</span>
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="filter-onetime" checked onchange="saveFilterPrefs(); render()" />
+                    <label class="form-check-label description" for="filter-onetime">
+                      <span class="cmp-card-badge cmp-badge-onetime">One-time</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card dashboard-filter-card">
+              <div class="card-body">
+                <label class="dashboard-filter-section-label" for="filter-min-cost">Minimum cost</label>
+                <div class="dashboard-mincost-row">
+                  <span class="dashboard-mincost-prefix">$</span>
+                  <input type="number" class="form-control form-control-sm dashboard-mincost-input"
+                    id="filter-min-cost" placeholder="0" min="0"
+                    oninput="saveFilterPrefs(); render()" />
+                </div>
+                <div class="form-text description dashboard-mincost-hint">Hide meetings below this cost</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div><!-- /dashboard-mobile-filter-card -->
     </aside>
 
     <!-- ===== RIGHT: main content ===== -->
     <main class="dashboard-main">
+
+      <!-- Page header -->
+      <div class="dashboard-main-header mb-4">
+        <div>
+          <h2 class="header londrina-shadow-regular mb-1">Cost Dashboard</h2>
+          <p class="header mb-0">See what your meetings are really costing you.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-secondary d-md-none" id="filters-toggle-btn" onclick="toggleMobileFilters()">⚙ Filters</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">🖨 Print / PDF</button>
+        </div>
+      </div>
 
       <!-- Summary stat cards -->
       <div class="dashboard-stat-row" id="dashboard-stat-row"></div>

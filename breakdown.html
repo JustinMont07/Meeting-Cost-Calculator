@@ -186,7 +186,10 @@
     <div class="right-panel">
       <div class="right-panel-header mb-3">
         <h2 class="header londrina-shadow-regular mb-0">Cost Breakdown</h2>
-        <button class="btn btn-sm btn-outline-primary" onclick="exportCSV()">⬇ Export CSV</button>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">🖨 Print / PDF</button>
+          <button class="btn btn-sm btn-outline-primary" onclick="exportCSV()">⬇ Export CSV</button>
+        </div>
       </div>
 
       <!-- Shown when more than one meeting exists — injected by breakdown.js -->
